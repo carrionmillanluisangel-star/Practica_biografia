@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mi Autobiografía</title>
+  <meta name="description" content="Plantilla simple para escribir tu autobiografía. Edita el HTML para personalizar." />
+  <style>
+    :root{
+      --bg:#f7f7fb; --card:#ffffff; --muted:#6b6b7a; --accent:#2b6cb0; --glass: rgba(255,255,255,0.6);
+      --maxw:900px; --pad:18px;
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#222;background:linear-gradient(180deg,var(--bg),#eef2f7);}
+    .wrap{max-width:var(--maxw);margin:36px auto;padding:20px;}
+    header{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+    .avatar{width:96px;height:96px;border-radius:12px;flex:0 0 96px;background:linear-gradient(135deg,#e6eefc,#dbeffd);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);}
+    h1{margin:0;font-size:1.6rem}
+    p.lead{margin:4px 0 0;color:var(--muted)}
+    .controls{margin-left:auto;display:flex;gap:8px}
+    button{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(43,108,176,0.14)}
+    main{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(40,40,60,0.06)}
+    section{margin-bottom:18px}
+    .section-title{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .section-title h2{margin:0;font-size:1.05rem}
+    .editable{min-height:48px;padding:12px;border-radius:8px;background:var(--glass);outline:2px dashed transparent}
+    .editable:focus{outline:2px dashed rgba(43,108,176,0.3);background:#fff}
+    .timeline{display:flex;flex-direction:column;gap:10px}
+    .timeline-item{padding:10px;border-radius:8px;background:linear-gradient(180deg,#fff,#fafcff);border:1px solid rgba(20,20,40,0.03)}
+    .meta{font-size:0.85rem;color:var(--muted)}
+    footer{font-size:0.85rem;color:var(--muted);text-align:center;margin-top:10px}
+    @media (max-width:640px){.wrap{margin:12px;padding:12px}.avatar{width:72px;height:72px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="avatar" id="avatar">YO</div>
+      <div>
+        <h1 contenteditable="true" id="name">Luis Angel Carrión Millán</h1>
+        <p class="lead" contenteditable="true" id="tagline">Estudiante · Soñador.</p>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="section-title"><h2>Introducción</h2></div>
+        <div class="editable" id="intro" contenteditable="true">
+          Soy Luis, vivo en Cuernavaca y actualmente soy estudiante
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title"><h2>Infancia</h2></div>
+        <div class="editable" id="childhood" contenteditable="true">
+          Siento que tuve una buena infancia, viviendo con mis padres y con una excelente familia en general
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title"><h2>Educación y carrera</h2></div>
+        <div class="editable" id="education" contenteditable="true">
+          Cursé el kinder en el colegio Calgary, la primaria y secundaria en Fundación Don Bosco y la preparatoria en el CETis 44
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title"><h2>Vida personal</h2></div>
+        <div class="editable" id="personal" contenteditable="true">
+          Me gusta jugar videojuegos o leer en mis ratos libres
+        </div>
+      </section>
+
+
+    </main>
+  </div>
+
+  <script>
+    // Simple helper: save page as HTML file (incluye todo el html actual)
+    document.getElementById('saveBtn').addEventListener('click', function(){
+      const content = '<!doctype html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([content], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (document.getElementById('name').innerText.trim() || 'autobiografia') + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    // Save/Load to localStorage (solo contenido editable)
+    const keys = ['name','tagline','intro','childhood','education','personal','achievements','future','contact','avatar'];
+    function saveLocal(){
+      const data = {};
+      keys.forEach(k=>{ const el = document.getElementById(k); if(el) data[k]=el.innerHTML; });
+      // achievements: capture innerHTML of container
+      const ach = document.getElementById('achievements'); if(ach) data['achievements']=ach.innerHTML;
+      localStorage.setItem('autobio:draft', JSON.stringify(data));
+      alert('Borrador guardado en tu navegador (localStorage).');
+    }
+    function loadLocal(){
+      const raw = localStorage.getItem('autobio:draft');
+      if(!raw){ alert('No se encontró borrador en localStorage.'); return; }
+      const data = JSON.parse(raw);
+      keys.forEach(k=>{ const el = document.getElementById(k); if(el && data[k]) el.innerHTML = data[k]; });
+      const ach = document.getElementById('achievements'); if(ach && data['achievements']) ach.innerHTML = data['achievements'];
+      alert('Borrador cargado.');
+    }
+    document.getElementById('saveLocal').addEventListener('click', saveLocal);
+    document.getElementById('loadLocal').addEventListener('click', loadLocal);
+    // Make avatar initials update automatically from name
+    const nameEl = document.getElementById('name');
+    const avatar = document.getElementById('avatar');
+    function updateAvatar(){
+      const txt = nameEl.innerText.trim();
+      if(!txt){avatar.innerText='TU'; return}
+      const parts = txt.split(/\s+/).filter(Boolean);
+      avatar.innerText = (parts.length>1? parts[0][0]+parts[parts.length-1][0] : parts[0].slice(0,2)).toUpperCase();
+    }
+    nameEl.addEventListener('input', updateAvatar);
+    updateAvatar();
+
+    // Make Enter in timeline create new item (simple UX)
+    document.getElementById('achievements').addEventListener('keydown', function(e){
+      if(e.key==='Enter'){
+        e.preventDefault();
+        const div = document.createElement('div');
+        div.className = 'timeline-item editable';
+        div.contentEditable = 'true';
+        div.innerText = 'Nuevo logro o aprendizaje';
+        this.appendChild(div);
+        div.focus();
+      }
+    });
+
+    // Prevent accidental dragging/selecting of controls
+    document.querySelectorAll('button').forEach(b=>b.addEventListener('mousedown', e=>e.preventDefault()));
+  </script>
+</body>
+</html>
